@@ -1,0 +1,24 @@
+#!/bin/sh
+source "$HOME/.mfa"
+if [ -z "$MFA_ARN" ]; then
+	echo MFA_ARN empty
+	exit 1
+fi
+
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_SESSION_TOKEN
+unset AWS_SECURITY_TOKEN
+
+aws sts get-session-token \
+	--duration 7200 \
+	--serial-number "$MFA_ARN" \
+	--token-code "$1" \
+	--output text | \
+	awk '
+{
+	print "export AWS_ACCESS_KEY_ID=" $2
+	print "export AWS_SECRET_ACCESS_KEY=" $4
+	print "export AWS_SESSION_TOKEN=" $5
+	print "export AWS_SECURITY_TOKEN=" $5
+}'
